@@ -148,6 +148,21 @@ a.help_link_widget {
 .change-email {
     display: flex;
     gap: 0.5rem;
+    /* Allow the email field to shrink on narrow viewports, so
+       that the edit button stays visible rather than being
+       pushed out of view past the input. */
+    min-width: 0;
+
+    #email_field_container {
+        min-width: 0;
+
+        .settings_text_input {
+            /* Shrink to the available space instead of keeping
+               the fixed width from .settings_text_input, which
+               overflows narrow settings panels. */
+            max-width: 100%;
+        }
+    }
 }
 
 .admin-realm-description,
