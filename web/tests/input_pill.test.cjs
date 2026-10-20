@@ -289,6 +289,72 @@ run_test("comma", ({mock_template}) => {
     assert.deepEqual(widget.items(), [items.blue, items.red, items.yellow]);
 });
 
+run_test("comma with create_pill_on_comma", ({mock_template}) => {
+    mock_template("input_pill.hbs", true, (data, html) => {
+        assert.equal(typeof data.display_value, "string");
+        return html;
+    });
+
+    const info = set_up();
+    const config = {
+        ...info.config,
+        // Widgets like the email pill allow commas inside their
+        // items, but still want to convert the pending text to a
+        // pill when the user types a comma.
+        split_text_on_comma: false,
+        create_pill_on_comma: true,
+    };
+    const items = info.items;
+    const $pill_input = info.$pill_input;
+    const $container = info.$container;
+
+    const widget = input_pill.create(config);
+    widget.appendValue("blue");
+
+    assert.deepEqual(widget.items(), [items.blue]);
+
+    const key_handler = $container.get_on_handler("keydown", ".input");
+
+    let prevent_default_count = 0;
+    const preventDefault = () => {
+        prevent_default_count += 1;
+    };
+
+    // Typing a comma on an empty input leaves the input alone.
+    $pill_input.text("");
+    key_handler({
+        key: ",",
+        preventDefault,
+    });
+
+    assert.equal(prevent_default_count, 0);
+    assert.deepEqual(widget.items(), [items.blue]);
+
+    // Text that does not validate stays in the input, with the
+    // comma allowed through, so that the user can fix it.
+    $pill_input.text(" yel");
+    key_handler({
+        key: ",",
+        preventDefault,
+    });
+
+    assert.equal(prevent_default_count, 0);
+    assert.deepEqual(widget.items(), [items.blue]);
+    assert.equal($pill_input.text(), " yel");
+
+    // Text that validates becomes a pill, and the input is
+    // cleared for the next item.
+    $pill_input.text(" yellow");
+    key_handler({
+        key: ",",
+        preventDefault,
+    });
+
+    assert.equal(prevent_default_count, 1);
+    assert.deepEqual(widget.items(), [items.blue, items.yellow]);
+    assert.equal($pill_input.text(), "");
+});
+
 run_test("Enter key with text", ({mock_template}) => {
     mock_template("input_pill.hbs", true, (data, html) => {
         assert.equal(typeof data.display_value, "string");

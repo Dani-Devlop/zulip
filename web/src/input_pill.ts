@@ -22,6 +22,7 @@ type InputPillCreateOptions<ItemType> = {
     $container: JQuery;
     pill_config?: InputPillConfig | undefined;
     split_text_on_comma?: boolean;
+    create_pill_on_comma?: boolean;
     convert_to_pill_on_enter?: boolean;
     create_item_from_text: (
         text: string,
@@ -62,6 +63,7 @@ type InputPillStore<ItemType> = {
     onPillExpand?: (pill: JQuery) => void;
     createPillonPaste?: () => void;
     split_text_on_comma: boolean;
+    create_pill_on_comma: boolean;
     convert_to_pill_on_enter: boolean;
     show_outline_on_invalid_input: boolean;
     split_text_to_form_pills: InputPillCreateOptions<ItemType>["split_text_to_form_pills"];
@@ -109,6 +111,7 @@ export function create<ItemType extends {type: string}>(
         get_text_from_item: opts.get_text_from_item,
         get_display_value_from_item: opts.get_display_value_from_item,
         split_text_on_comma: opts.split_text_on_comma ?? true,
+        create_pill_on_comma: opts.create_pill_on_comma ?? false,
         convert_to_pill_on_enter: opts.convert_to_pill_on_enter ?? true,
         generate_pill_html: opts.generate_pill_html,
         on_pill_exit: opts.on_pill_exit,
@@ -423,6 +426,22 @@ export function create<ItemType extends {type: string}>(
                     funcs.clear(util.the(store.$input));
                 }
                 e.preventDefault();
+
+                return;
+            }
+
+            // Pill widgets that allow commas inside their items (e.g., the
+            // email pill, for display names like "Doe, John" <doe@example.com>)
+            // cannot split on every comma the user types.  For those,
+            // `create_pill_on_comma` lets a comma still convert the pending
+            // text to a pill whenever it validates; otherwise, the comma is
+            // typed into the input as usual.
+            if (e.key === "," && store.create_pill_on_comma) {
+                const value = store.$input.text().trim();
+                if (value.length > 0 && funcs.appendPill(value)) {
+                    funcs.clear(util.the(store.$input));
+                    e.preventDefault();
+                }
 
                 return;
             }
