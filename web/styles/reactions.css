@@ -7,6 +7,11 @@
     }
 
     .message_reaction_container {
+        /* Allow the pill to shrink to the available width, so
+           that an overlong vote text gets truncated rather than
+           pushing the pill past the edge of the reactions box. */
+        min-width: 0;
+
         &.disabled {
             cursor: not-allowed;
         }
@@ -17,6 +22,9 @@
         padding: 2.5px 5px 2.5px 4px;
         box-sizing: border-box;
         min-width: 44px;
+        /* Keep the pill inside the reactions box, no matter
+           how wide its contents would like to be. */
+        max-width: 100%;
         cursor: pointer;
         color: var(--color-message-reaction-text);
         background-color: var(--color-message-reaction-background);
@@ -89,6 +97,14 @@
            count/name.
            13px at 12.6/1em */
         line-height: 1.0317em;
+
+        /* An overlong vote text (the names of those who
+           reacted) gets truncated with an ellipsis, rather
+           than pushing the pill's contents out of view. */
+        min-width: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .message_reaction:hover .message_reaction_count {
