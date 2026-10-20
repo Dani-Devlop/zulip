@@ -41,13 +41,17 @@ export function get_email_from_item(item: EmailPill): string {
     return item.email;
 }
 
-export function get_current_email(
+export function get_current_emails(
     pill_container: input_pill.InputPillContainer<EmailPill>,
 ): string | null {
     const current_text = pill_container.getCurrentText();
     if (current_text !== null) {
-        const parsed_address = parseOneAddress(current_text);
-        if (parsed_address?.type === "mailbox") {
+        // The pending text can hold a comma-separated list of
+        // addresses, since commas are allowed while typing (they
+        // are needed for display names like "Doe, John"
+        // <doe@example.com>).
+        const parsed_addresses = parseAddressList(current_text);
+        if (parsed_addresses !== null && parsed_addresses.length > 0) {
             return current_text;
         }
     }
@@ -92,6 +96,7 @@ export function create_pills(
         get_text_from_item: get_email_from_item,
         get_display_value_from_item: get_email_from_item,
         split_text_on_comma: false,
+        create_pill_on_comma: true,
         split_text_to_form_pills: split_text_to_form_email_pills,
         generate_pill_html,
     });
